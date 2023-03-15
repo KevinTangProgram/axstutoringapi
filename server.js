@@ -314,7 +314,7 @@ app.post('/email/new', async (req, res) => {
                     resolve("email sent");
                 }
                 //console.log("Sent", info.response);
-            })
+            });
         })
     }
     res.json(0);
@@ -489,7 +489,7 @@ app.get('/find/appointment/info', async (req, res) => {
                             resolve("email sent");
                         }
                         //console.log("Sent", info.response);
-                    })
+                    });
                 })
 
                 const message1 = "Dear " + result.student + ",\n\nThis is a confirmation of your cancellation for tutoring with " 
@@ -515,7 +515,7 @@ app.get('/find/appointment/info', async (req, res) => {
                             resolve("email sent");
                         }
                         //console.log("Sent", info.response);
-                    })
+                    });
                 })
                 response = true;
                 break;
@@ -985,7 +985,7 @@ app.post('/request/new', async (req, res) => {
                 resolve("email sent");
             }
             //console.log("Sent", info.response);
-        })
+        });
     })
 
     const message1 = "Dear " + req.body.student + ",\n\nThis is a confirmation of your request for tutoring with " 
@@ -1013,7 +1013,7 @@ app.post('/request/new', async (req, res) => {
                 resolve("email sent");
             }
             //console.log("Sent", info.response);
-        })
+        });
     })
 
     const feed1 = await Email.find();
