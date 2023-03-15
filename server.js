@@ -303,13 +303,15 @@ app.post('/email/new', async (req, res) => {
             text: message,
         };
         
-        transporter.sendMail(options, function (err, info){
-            if (err)
-            {
-                console.log(err);
-                return;
-            }
-            //console.log("Sent", info.response);
+        new Promise((resolve, reject) => {
+            transporter.sendMail(options, function (err, info){
+                if (err)
+                {
+                    console.log(err);
+                    return;
+                }
+                //console.log("Sent", info.response);
+            })
         })
     }
     res.json(0);
@@ -473,13 +475,15 @@ app.get('/find/appointment/info', async (req, res) => {
                     text: message,
                 };
                 
-                transporter.sendMail(options, function (err, info){
-                    if (err)
-                    {
-                        console.log(err);
-                        return;
-                    }
-                    //console.log("Sent", info.response);
+                new Promise((resolve, reject) => {
+                    transporter.sendMail(options, function (err, info){
+                        if (err)
+                        {
+                            console.log(err);
+                            return;
+                        }
+                        //console.log("Sent", info.response);
+                    })
                 })
 
                 const message1 = "Dear " + result.student + ",\n\nThis is a confirmation of your cancellation for tutoring with " 
@@ -494,13 +498,15 @@ app.get('/find/appointment/info', async (req, res) => {
                     text: message1,
                 };
                 
-                transporter.sendMail(options1, function (err, info){
-                    if (err)
-                    {
-                        console.log(err);
-                        return;
-                    }
-                    //console.log("Sent", info.response);
+                new Promise((resolve, reject) => {
+                    transporter.sendMail(options1, function (err, info){
+                        if (err)
+                        {
+                            console.log(err);
+                            return;
+                        }
+                        //console.log("Sent", info.response);
+                    })
                 })
                 response = true;
                 break;
@@ -959,13 +965,15 @@ app.post('/request/new', async (req, res) => {
         text: message,
     };
     
-    transporter.sendMail(options, function (err, info){
-        if (err)
-        {
-            console.log(err);
-            return;
-        }
-        //console.log("Sent", info.response);
+    new Promise((resolve, reject) => {
+        transporter.sendMail(options, function (err, info){
+            if (err)
+            {
+                console.log(err);
+                return;
+            }
+            //console.log("Sent", info.response);
+        })
     })
 
     const message1 = "Dear " + req.body.student + ",\n\nThis is a confirmation of your request for tutoring with " 
@@ -982,13 +990,15 @@ app.post('/request/new', async (req, res) => {
         text: message1,
     };
     
-    transporter.sendMail(options1, function (err, info){
-        if (err)
-        {
-            console.log(err);
-            return;
-        }
-        //console.log("Sent", info.response);
+    new Promise((resolve, reject) => {
+        transporter.sendMail(options1, function (err, info){
+            if (err)
+            {
+                console.log(err);
+                return;
+            }
+            //console.log("Sent", info.response);
+        })
     })
 
     const feed1 = await Email.find();
