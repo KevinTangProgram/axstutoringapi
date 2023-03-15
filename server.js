@@ -4,6 +4,7 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 connection = "mongodb+srv://KevinTang:0hmlsVIAJwbjWuTf@axs-tutoring.c24c5cd.mongodb.net/?retryWrites=true&w=majority";//2xvy-BTPm7zNyvj
 const crypto = require('crypto-js');
+//const sgMail = require('@sendgrid/mail');
 
 const hash = crypto.SHA256("Hello").toString();
 //console.log(hash);
@@ -46,7 +47,26 @@ const transporter = nodemailer.createTransport( {
     }
 });
 
+/*
+const apiKey = "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";
 
+sgMail.setApiKey(apiKey);
+const msg = {
+  to: 'kevintang01@ucla.edu', // Change to your recipient
+  from: 'axstutoring@zohomail.com', // Change to your verified sender
+  subject: 'Sending with SendGrid is Fun',
+  text: 'and easy to do anywhere, even with Node.js',
+  html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+}
+sgMail
+  .send(msg)
+  .then(() => {
+    console.log('Email sent')
+  })
+  .catch((error) => {
+    console.error(error)
+  })
+*/
 
 mongoose.set('strictQuery', false);
 
@@ -303,7 +323,7 @@ app.post('/email/new', async (req, res) => {
             text: message,
         };
         
-        new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             transporter.sendMail(options, function (err, info){
                 if (err)
                 {
@@ -478,7 +498,7 @@ app.get('/find/appointment/info', async (req, res) => {
                     text: message,
                 };
                 
-                new Promise((resolve, reject) => {
+                await new Promise((resolve, reject) => {
                     transporter.sendMail(options, function (err, info){
                         if (err)
                         {
@@ -504,7 +524,7 @@ app.get('/find/appointment/info', async (req, res) => {
                     text: message1,
                 };
                 
-                new Promise((resolve, reject) => {
+                await new Promise((resolve, reject) => {
                     transporter.sendMail(options1, function (err, info){
                         if (err)
                         {
@@ -974,7 +994,7 @@ app.post('/request/new', async (req, res) => {
         text: message,
     };
     
-    new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
         transporter.sendMail(options, function (err, info){
             if (err)
             {
@@ -1002,7 +1022,7 @@ app.post('/request/new', async (req, res) => {
         text: message1,
     };
     
-    new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
         transporter.sendMail(options1, function (err, info){
             if (err)
             {
