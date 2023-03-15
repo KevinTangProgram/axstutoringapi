@@ -4,30 +4,10 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 connection = "mongodb+srv://KevinTang:0hmlsVIAJwbjWuTf@axs-tutoring.c24c5cd.mongodb.net/?retryWrites=true&w=majority";//2xvy-BTPm7zNyvj
 const crypto = require('crypto-js');
-//const sgMail = require('@sendgrid/mail');
 
-const hash = crypto.SHA256("Hello").toString();
-//console.log(hash);
-/*
-const sha256 = require.config({
-    paths: {
-      "crypto-js": "path-to/bower_components/crypto-js/crypto-js",
-    },
-  })
-  */
+const tutoringChairs = "Arthur Huang and Claire Luong";
 
-/*
-var smtpConfig = {
-    host: 'mail.com',
-    port: 465,
-    secure: true, // use SSL
-    auth: {
-        user: 'axstutoring@mail.com',
-        pass: 'B4y27*Zct,3.Nw/'
-    }
-};
-var transporter = nodemailer.createTransport(smtpConfig);
-*/
+//const hash = crypto.SHA256("Hello").toString();
 
 /*
 const transporter = nodemailer.createTransport( {
@@ -46,27 +26,6 @@ const transporter = nodemailer.createTransport( {
         pass: "Rs5m4zTPmncNsxZ"
     }
 });
-
-/*
-const apiKey = "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";
-
-sgMail.setApiKey(apiKey);
-const msg = {
-  to: 'kevintang01@ucla.edu', // Change to your recipient
-  from: 'axstutoring@zohomail.com', // Change to your verified sender
-  subject: 'Sending with SendGrid is Fun',
-  text: 'and easy to do anywhere, even with Node.js',
-  html: '<strong>and easy to do anywhere, even with Node.js</strong>',
-}
-sgMail
-  .send(msg)
-  .then(() => {
-    console.log('Email sent')
-  })
-  .catch((error) => {
-    console.error(error)
-  })
-*/
 
 mongoose.set('strictQuery', false);
 
@@ -159,18 +118,44 @@ function dateEncoder(bookDate)
     return dateProcessor;
 }
 
-app.get('/checkemail', async (req, res) => {
-    const feed = await Email.find();
-    let flag = 1;
-    let username = "";
-    if (req.query.email.includes("@g.ucla.edu"))
+function dateComparer(bookDate, days)
+{
+    const monthList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    dateProcessor = monthList[Number(bookDate[8] + bookDate[9]) - 1] + ' ' + bookDate[10] + bookDate[11] + ' '
+    + bookDate[4] + bookDate[5] + bookDate[6] + bookDate[7];
+
+    let hour = timeTable[Number(bookDate[2] + bookDate[3])];
+    if (hour.substring(hour.length - 2, hour.length) === "PM" && hour.substring(0, 2) !== "12")
     {
-        username = req.query.email.replace("@g.ucla.edu", "");
+        let hourNumber = Number(hour.substring(0, 2)) + 12;
+        hour = hourNumber.toString() + hour.substring(2, 5);
+    }
+
+    return ((Date.parse(dateProcessor + ' ' + hour) + days*86400000) < Date.now())
+}
+
+function user(email)
+{
+    if (email.includes("@g.ucla.edu"))
+    {
+        return (email.replace("@g.ucla.edu", ""));
     }
     else if (req.query.email.includes("@ucla.edu"))
     {
-        username = req.query.email.replace("@ucla.edu", "");
+        return (email.replace("@ucla.edu", ""));
     }
+    return "";
+}
+
+app.get('/startup', async (req, res) => {
+    res.json(0);
+})
+
+app.get('/checkemail', async (req, res) => {
+    const feed = await Email.find();
+    let flag = 1;
+    let username = user(req.query.email);
     for (let i = 0; i < feed.length; i++)
     {
         if (feed[i].email === username && (feed[i].bookings.length === 0 || feed[i].bookings[0] != '-'))
@@ -224,15 +209,7 @@ app.get('/checkcode', async (req, res) => {
     const feed = await Email.find();
 
     flag = false;
-    let username = "";
-    if (req.query.email.includes("@g.ucla.edu"))
-    {
-        username = req.query.email.replace("@g.ucla.edu", "");
-    }
-    else if (req.query.email.includes("@ucla.edu"))
-    {
-        username = req.query.email.replace("@ucla.edu", "");
-    }
+    let username = user(req.query.email);
     //console.log(username);
     for (let i = 0; i < feed.length; i++)
     {
@@ -265,15 +242,7 @@ app.post('/email/new', async (req, res) => {
     {
         code += Math.floor(Math.random() * 10).toString();
     }
-    let username = "";
-    if (req.body.email.includes("@g.ucla.edu"))
-    {
-        username = req.body.email.replace("@g.ucla.edu", "");
-    }
-    else if (req.body.email.includes("@ucla.edu"))
-    {
-        username = req.body.email.replace("@ucla.edu", "");
-    }
+    let username = user(req.body.email);
     //console.log(username);
     let flag = true;
     let sendEmail = false;
@@ -314,7 +283,7 @@ app.post('/email/new', async (req, res) => {
     if (sendEmail)
     {
         const message = "Dear " + req.body.student + ",\n\n" + "Please enter " + code + " to validate your email.\n"
-        + "\nSincerely,\nArthur Huang and Claire Luong";
+        + "\nSincerely,\n" + tutoringChairs;
 
         const options = {
             from: "axstutoring@zohomail.com",
@@ -442,15 +411,7 @@ app.get('/find/appointment/info', async (req, res) => {
         {
             if ((feed[i]._id.toString()).substring((feed[i]._id.toString()).length - 5, (feed[i]._id.toString()).length) === req.query.code)
             {
-                let username = "";
-                if (req.query.info[1].includes("@g.ucla.edu"))
-                {
-                    username = req.query.info[1].replace("@g.ucla.edu", "");
-                }
-                else if (req.query.info[1].includes("@ucla.edu"))
-                {
-                    username = req.query.info[1].replace("@ucla.edu", "");
-                }
+                let username = user(req.query.info[1]);
 
                 for (let j = 0; j < feed1.length; j++)
                 {
@@ -489,7 +450,7 @@ app.get('/find/appointment/info', async (req, res) => {
                 + "Date: " + result.date + "\n"
                 + "Phone: " + result.phone + "\n"
                 + "Request: " + result.request + "\n"
-                + "\nSincerely,\nArthur Huang and Claire Luong";
+                + "\nSincerely,\n" + tutoringChairs;
 
                 const options = {
                     from: "axstutoring@zohomail.com",
@@ -514,7 +475,7 @@ app.get('/find/appointment/info', async (req, res) => {
 
                 const message1 = "Dear " + result.student + ",\n\nThis is a confirmation of your cancellation for tutoring with " 
                 + result.tutor + " on " + result.date + " for " + result.subject + ". No further action is required." + 
-                "\n\nSincerely,\nArthur Huang and Claire Luong"
+                "\n\nSincerely,\n" + tutoringChairs
                 + "\n\n[Do not reply to this email. For all inquiries please contact us at tutoring.axsbg@gmail.com]";
 
                 const options1 = {
@@ -555,15 +516,7 @@ app.get('/find/appointment', async (req, res) => {
     let tempArray2 = [];
     //console.log(returnArray);
 
-    let username = "";
-    if (req.query.email.includes("@g.ucla.edu"))
-    {
-        username = req.query.email.replace("@g.ucla.edu", "");
-    }
-    else if (req.query.email.includes("@ucla.edu"))
-    {
-        username = req.query.email.replace("@ucla.edu", "");
-    }
+    let username = user(req.query.email);
 
     //console.log(username);
     //console.log(todayDate);
@@ -754,6 +707,7 @@ app.get('/datelist', async (req, res) => {
 
     let returnArray = [];
     let updatedString = "";
+    let updatedString1 = "";
     let maxHours = 0;
     let dayOffStart = 0;
     let dayOffEnd = 0;
@@ -769,27 +723,40 @@ app.get('/datelist', async (req, res) => {
             {
                 week[Number(feed[i].availability[j])][Number(feed[i].availability[j + 1] + feed[i].availability[j + 2])] = true;
             }
-            const todayDate = new Date();
-            //console.log(todayDate);
-            let dateString = todayDate.getFullYear().toString();
-            if (todayDate.getMonth() < 9)
-            {
-                dateString += "0";
-            }
-            dateString += (todayDate.getMonth() + 1).toString();
-            if (todayDate.getDate() < 10)
-            {
-                dateString += "0";
-            }
-            dateString += todayDate.getDate().toString();
-            //console.log(dateString);
+            // const todayDate = new Date();
+            // //console.log(todayDate);
+            // let dateString = todayDate.getFullYear().toString();
+            // if (todayDate.getMonth() < 9)
+            // {
+            //     dateString += "0";
+            // }
+            // dateString += (todayDate.getMonth() + 1).toString();
+            // if (todayDate.getDate() < 10)
+            // {
+            //     dateString += "0";
+            // }
+            // dateString += todayDate.getDate().toString();
+            // //console.log(dateString);
 
-            for (let j = 1; j < feed[i].booking.length; j+=13)
+            // for (let j = 1; j < feed[i].booking.length; j+=13)
+            // {
+            //     let bookingString = feed[i].booking.substring(j + 3, j + 11);
+            //     if (bookingString > dateString)
+            //     {
+            //         updatedString += feed[i].booking.substring(j - 1, j + 12);
+            //     }
+            // }
+
+            for (let j = 0; j < feed[i].booking.length; j+= 13)
             {
-                let bookingString = feed[i].booking.substring(j + 3, j + 11)
-                if (bookingString > dateString)
+                let bookingString = feed[i].booking.substring(j, j + 13);
+                if (!dateComparer(bookingString, 0))
                 {
-                    updatedString += feed[i].booking.substring(j - 1, j + 12);
+                    updatedString += bookingString;
+                }
+                if (!dateComparer(bookingString, 5))
+                {
+                    updatedString1 += bookingString;
                 }
             }
             
@@ -803,7 +770,7 @@ app.get('/datelist', async (req, res) => {
 
             const id = feed[i]._id;
             const post = await Post.findByIdAndUpdate(id, {
-                booking: updatedString,
+                booking: updatedString1,
             }, { new: true });
         
             post.save();
@@ -930,7 +897,7 @@ app.get('/datelist', async (req, res) => {
     }
     //console.log(week);
 
-    if (updatedString.length / 13 >= maxHours)
+    if (updatedString1.length / 13 >= maxHours)
     {
         returnArray = [];
     }
@@ -985,7 +952,7 @@ app.post('/request/new', async (req, res) => {
     + "Date: " + req.body.date + "\n"
     + "Phone: " + req.body.phone + "\n"
     + "Request: " + req.body.request + "\n"
-    + "\nSincerely,\nArthur Huang and Claire Luong";
+    + "\nSincerely,\n" + tutoringChairs;
 
     const options = {
         from: "axstutoring@zohomail.com",
@@ -1012,7 +979,7 @@ app.post('/request/new', async (req, res) => {
     + req.body.tutor + " on " + req.body.date + " for " + req.body.subject + ". Please email them" +  
     " the materials that you would like to go over 24 hours before the scheduled appointment time at " + memberEmail +
     ".\n\nAppointment ID: " + (post._id.toString()).substring((post._id.toString()).length - 5, (post._id.toString()).length) +
-    "\n\nThank you for choosing AXS Tutoring.\n\nSincerely,\nArthur Huang and Claire Luong"
+    "\n\nThank you for choosing AXS Tutoring.\n\nSincerely,\n" + tutoringChairs
     + "\n\n[Do not reply to this email. For all inquiries please contact us at tutoring.axsbg@gmail.com]";
 
     const options1 = {
@@ -1038,15 +1005,7 @@ app.post('/request/new', async (req, res) => {
 
     const feed1 = await Email.find();
 
-    let username = "";
-    if (req.body.email.includes("@g.ucla.edu"))
-    {
-        username = req.body.email.replace("@g.ucla.edu", "");
-    }
-    else if (req.body.email.includes("@ucla.edu"))
-    {
-        username = req.body.email.replace("@ucla.edu", "");
-    }
+    let username = user(req.body.email);
 
     for (let i = 0; i < feed1.length; i++)
     {
@@ -1131,15 +1090,7 @@ app.put('/feed/edit', async (req, res) => {
 
     const feed1 = await Email.find();
 
-    let username = "";
-    if (req.body.email.includes("@g.ucla.edu"))
-    {
-        username = req.body.email.replace("@g.ucla.edu", "");
-    }
-    else if (req.body.email.includes("@ucla.edu"))
-    {
-        username = req.body.email.replace("@ucla.edu", "");
-    }
+    let username = user(req.body.email);
 
     for (let i = 0; i < feed1.length; i++)
     {
