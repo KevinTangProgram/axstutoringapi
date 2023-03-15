@@ -307,8 +307,11 @@ app.post('/email/new', async (req, res) => {
             transporter.sendMail(options, function (err, info){
                 if (err)
                 {
-                    console.log(err);
-                    return;
+                    reject(err);
+                }
+                else
+                {
+                    resolve("email sent");
                 }
                 //console.log("Sent", info.response);
             })
@@ -479,8 +482,11 @@ app.get('/find/appointment/info', async (req, res) => {
                     transporter.sendMail(options, function (err, info){
                         if (err)
                         {
-                            console.log(err);
-                            return;
+                            reject(err);
+                        }
+                        else
+                        {
+                            resolve("email sent");
                         }
                         //console.log("Sent", info.response);
                     })
@@ -502,8 +508,11 @@ app.get('/find/appointment/info', async (req, res) => {
                     transporter.sendMail(options1, function (err, info){
                         if (err)
                         {
-                            console.log(err);
-                            return;
+                            reject(err);
+                        }
+                        else
+                        {
+                            resolve("email sent");
                         }
                         //console.log("Sent", info.response);
                     })
@@ -969,8 +978,11 @@ app.post('/request/new', async (req, res) => {
         transporter.sendMail(options, function (err, info){
             if (err)
             {
-                console.log(err);
-                return;
+                reject(err);
+            }
+            else
+            {
+                resolve("email sent");
             }
             //console.log("Sent", info.response);
         })
@@ -994,8 +1006,11 @@ app.post('/request/new', async (req, res) => {
         transporter.sendMail(options1, function (err, info){
             if (err)
             {
-                console.log(err);
-                return;
+                reject(err);
+            }
+            else
+            {
+                resolve("email sent");
             }
             //console.log("Sent", info.response);
         })
