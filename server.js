@@ -19,6 +19,7 @@ const transporter = nodemailer.createTransport( {
 });
 */
 
+/*
 const transporter = nodemailer.createTransport( {
     service: "Zoho",
     auth: {
@@ -26,6 +27,7 @@ const transporter = nodemailer.createTransport( {
         pass: "Rs5m4zTPmncNsxZ"
     }
 });
+*/
 
 mongoose.set('strictQuery', false);
 
@@ -292,6 +294,7 @@ app.post('/email/new', async (req, res) => {
             text: message,
         };
         
+        /*
         await new Promise((resolve, reject) => {
             transporter.sendMail(options, function (err, info){
                 if (err)
@@ -305,6 +308,7 @@ app.post('/email/new', async (req, res) => {
                 //console.log("Sent", info.response);
             });
         })
+        */
     }
     res.json(0);
 })
@@ -459,6 +463,7 @@ app.get('/find/appointment/info', async (req, res) => {
                     text: message,
                 };
                 
+                /*
                 await new Promise((resolve, reject) => {
                     transporter.sendMail(options, function (err, info){
                         if (err)
@@ -472,6 +477,7 @@ app.get('/find/appointment/info', async (req, res) => {
                         //console.log("Sent", info.response);
                     });
                 })
+                */
 
                 const message1 = "Dear " + result.student + ",\n\nThis is a confirmation of your cancellation for tutoring with " 
                 + result.tutor + " on " + result.date + " for " + result.subject + ". No further action is required." + 
@@ -485,6 +491,7 @@ app.get('/find/appointment/info', async (req, res) => {
                     text: message1,
                 };
                 
+                /*
                 await new Promise((resolve, reject) => {
                     transporter.sendMail(options1, function (err, info){
                         if (err)
@@ -498,6 +505,7 @@ app.get('/find/appointment/info', async (req, res) => {
                         //console.log("Sent", info.response);
                     });
                 })
+                */
                 response = true;
                 break;
             }
@@ -961,6 +969,7 @@ app.post('/request/new', async (req, res) => {
         text: message,
     };
     
+    /*
     await new Promise((resolve, reject) => {
         transporter.sendMail(options, function (err, info){
             if (err)
@@ -974,6 +983,7 @@ app.post('/request/new', async (req, res) => {
             //console.log("Sent", info.response);
         });
     })
+    */
 
     const message1 = "Dear " + req.body.student + ",\n\nThis is a confirmation of your request for tutoring with " 
     + req.body.tutor + " on " + req.body.date + " for " + req.body.subject + ". Please email them" +  
@@ -989,6 +999,7 @@ app.post('/request/new', async (req, res) => {
         text: message1,
     };
     
+    /*
     await new Promise((resolve, reject) => {
         transporter.sendMail(options1, function (err, info){
             if (err)
@@ -1002,6 +1013,7 @@ app.post('/request/new', async (req, res) => {
             //console.log("Sent", info.response);
         });
     })
+    */
 
     const feed1 = await Email.find();
 
