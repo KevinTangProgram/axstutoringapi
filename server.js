@@ -141,7 +141,7 @@ function user(email)
     {
         return (email.replace("@g.ucla.edu", ""));
     }
-    else if (req.query.email.includes("@ucla.edu"))
+    else if (email.includes("@ucla.edu"))
     {
         return (email.replace("@ucla.edu", ""));
     }
