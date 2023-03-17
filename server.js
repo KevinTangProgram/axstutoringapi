@@ -8,16 +8,7 @@ const crypto = require('crypto-js');
 const tutoringChairs = "Arthur Huang and Claire Luong";
 
 //const hash = crypto.SHA256("Hello").toString();
-
-/*
-const transporter = nodemailer.createTransport( {
-    service: "hotmail",
-    auth: {
-        user: "axstutoring@outlook.com",
-        pass: "B4y27*Zct,3.Nw/"
-    }
-});
-*/
+/*const transporter = nodemailer.createTransport( {service: "hotmail",auth: {user: "axstutoring@outlook.com",pass: "B4y27*Zct,3.Nw/"}});*/
 
 const transporter = nodemailer.createTransport( {
     service: "Zoho",
@@ -26,7 +17,6 @@ const transporter = nodemailer.createTransport( {
         pass: "Rs5m4zTPmncNsxZ"
     }
 });
-
 
 mongoose.set('strictQuery', false);
 
@@ -69,7 +59,7 @@ const timeTable = ["8:00 AM", "8:15 AM", "8:30 AM", "8:45 AM",
 
 const subjectDivision = ["Chemistry", "Biology", "Math", "Physics", "Comp Sci"];
 
-function dateEncoder(bookDate)
+function dateEncoder(bookDate)  //compresses the date into string of numbers. "Thu Mar 16 2023 at 10:00AM" would become {40820230316}
 {
     const weekList = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const monthList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -119,7 +109,7 @@ function dateEncoder(bookDate)
     return dateProcessor;
 }
 
-function dateComparer(bookDate, days)
+function checkDateRange(bookDate, days)
 {
     const monthList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -140,11 +130,11 @@ function user(email)
 {
     if (email.includes("@g.ucla.edu"))
     {
-        return (email.replace("@g.ucla.edu", ""));
+        return ((email.replace("@g.ucla.edu", "")).toLowerCase());
     }
     else if (email.includes("@ucla.edu"))
     {
-        return (email.replace("@ucla.edu", ""));
+        return ((email.replace("@ucla.edu", "")).toLowerCase());
     }
     return "";
 }
@@ -157,35 +147,25 @@ app.get('/checkemail', async (req, res) => {
     const feed = await Email.find();
     let flag = 1;
     let username = user(req.query.email);
-    username = username.toLowerCase();
     for (let i = 0; i < feed.length; i++)
     {
         if (feed[i].email === username && (feed[i].bookings.length === 0 || feed[i].bookings[0] != '-'))
         {
             let updatedString = "";
             let bookingsThisWeek = 0;
-            //console.log(feed[i].bookings);
             const todayDate = new Date();
             for (let j = 0; j < feed[i].bookings.length; j+= 13)
             {
-                //console.log("yes");
-                let monthNumber = Number(feed[i].bookings.substring(j + 8, j + 10));
-                //console.log(monthNumber);
-                let dayNumber = Number(feed[i].bookings.substring(j + 10, j + 12));
-                //console.log(dayNumber);
-                let dayDifference = (todayDate.getMonth() + 1 - monthNumber)*30 + (todayDate.getDate() - dayNumber);
-                //console.log(dayDifference);
-                if (dayDifference < 21 && todayDate.getFullYear() === Number(feed[i].bookings.substring(j + 4, j + 8)))
+                if (checkDateRange(feed[i].bookings.substring(j, j + 13), 21))
                 {
                     updatedString += feed[i].bookings.substring(j, j + 13);
                 }
-                if (dayDifference < 0 && todayDate.getFullYear() === Number(feed[i].bookings.substring(j + 4, j + 8)))
+                if (checkDateRange(feed[i].bookings.substring(j, j + 13), 0))
                 {
                     bookingsThisWeek++;
                 }
             }
-            const id = feed[i]._id;
-            const post = await Email.findByIdAndUpdate(id, {
+            const post = await Email.findByIdAndUpdate(feed[i]._id, {
                 bookings: updatedString,
             }, { new: true });
             post.save();
@@ -210,9 +190,8 @@ app.get('/checkemail', async (req, res) => {
 app.get('/checkcode', async (req, res) => {
     const feed = await Email.find();
 
-    flag = false;
+    let flag = false;
     let username = user(req.query.email);
-    //console.log(username);
     for (let i = 0; i < feed.length; i++)
     {
         if (feed[i].email === username)
@@ -245,7 +224,6 @@ app.post('/email/new', async (req, res) => {
         code += Math.floor(Math.random() * 10).toString();
     }
     let username = user(req.body.email);
-    //console.log(username);
     let flag = true;
     let sendEmail = false;
 
@@ -253,9 +231,6 @@ app.post('/email/new', async (req, res) => {
     {
         if (feed[i].email === username)
         {
-            //console.log(Date.now());
-            //console.log(Number(feed[i].bookings.substring(8)));
-            //console.log((Date.now() - Number(feed[i].bookings.substring(8))));
             if (Date.now() - Number(feed[i].bookings.substring(8)) > 60000)
             {
                 const id = feed[i]._id;
@@ -269,7 +244,6 @@ app.post('/email/new', async (req, res) => {
             break;
         }
     }
-    //console.log(flag);
     if (flag)
     {
         const post = new Email({
@@ -279,8 +253,6 @@ app.post('/email/new', async (req, res) => {
         post.save();
         sendEmail = true;
     }
-
-    //console.log(sendEmail);
 
     if (sendEmail)
     {
@@ -304,7 +276,6 @@ app.post('/email/new', async (req, res) => {
                 {
                     resolve("email sent");
                 }
-                //console.log("Sent", info.response);
             });
         })
     }
@@ -471,7 +442,6 @@ app.get('/find/appointment/info', async (req, res) => {
                         {
                             resolve("email sent");
                         }
-                        //console.log("Sent", info.response);
                     });
                 })
 
@@ -497,7 +467,6 @@ app.get('/find/appointment/info', async (req, res) => {
                         {
                             resolve("email sent");
                         }
-                        //console.log("Sent", info.response);
                     });
                 })
                 response = true;
@@ -514,20 +483,15 @@ app.get('/find/appointment', async (req, res) => {
     const feed2 = await Course.find();
 
     let returnArray = new Array(2).fill([]);
-    let tempArray1 = [];
-    let tempArray2 = [];
-    //console.log(returnArray);
+    let upcomingAppointment = [];
+    let pastAppointment = [];
 
     let username = user(req.query.email);
 
-    //console.log(username);
-    //console.log(todayDate);
     for (let i = 0; i < feed.length; i++)
     {
-        //console.log(i);
         if ((feed[i].email === username + "@ucla.edu") || (feed[i].email === username + "@g.ucla.edu"))
         {
-            //console.log(i);
             let hour = feed[i].date.substring(19, 24);
             if (feed[i].date.length === 26)
             {
@@ -538,14 +502,10 @@ app.get('/find/appointment', async (req, res) => {
                 let hourNumber = Number(hour.substring(0, 2)) + 12;
                 hour = hourNumber.toString() + hour.substring(2, 5);
             }
-            //console.log(hour);
             const dateTranslator = Date.parse(feed[i].date.substring(4, 15) + ' ' + hour);
-            //console.log(dateTranslator);
             const todayDate = Date.now();
-            //console.log(dateTranslator > todayDate && !Boolean(req.query.past))
             if (dateTranslator > todayDate)
             {
-                //console.log("0");
                 for (let j = 0; j < feed2.length; j++)
                 {
                     if (feed2[j].course === feed[i].subject)
@@ -556,8 +516,7 @@ app.get('/find/appointment', async (req, res) => {
                             {
                                 const template = [feed[i].student, feed[i].email, feed[i].tutor, 
                                                     feed[i].subject, feed[i].date, k, feed[i].timestamp];
-                                //console.log(0);
-                                tempArray1.push(template);
+                                upcomingAppointment.push(template);
                                 break;
                             }
                         }
@@ -565,21 +524,8 @@ app.get('/find/appointment', async (req, res) => {
                     }
                 }
             }
-            //console.log((dateTranslator <= todayDate) && req.query.past);
-            // todayDate = Date.now();
-            // console.log(dateTranslator);
-            // console.log(todayDate);
-            // console.log(Boolean(req.query.past));
-
-            // const bbbb = ((Number(dateTranslator) <= Number(todayDate)) && Boolean(req.query.past));
-            // console.log((Number(dateTranslator) <= Number(todayDate)) && Boolean(req.query.past));
-            //console.log(typeof (Number(dateTranslator) <= Number(todayDate)) && Boolean(req.query.past));
             if ((Number(dateTranslator) <= Number(todayDate)))
             {
-                //console.log((Number(dateTranslator) <= Number(todayDate)) && Boolean(req.query.past));
-                // console.log("Why?");
-                // console.log("");
-                //console.log(((dateTranslator <= todayDate) && req.query.past));
                 for (let j = 0; j < feed2.length; j++)
                 {
                     if (feed2[j].course === feed[i].subject)
@@ -591,7 +537,7 @@ app.get('/find/appointment', async (req, res) => {
                                 const template = [feed[i].student, feed[i].email, feed[i].tutor, 
                                                     feed[i].subject, feed[i].date, k];
                                 //console.log(template);
-                                tempArray2.push(template);
+                                pastAppointment.push(template);
                                 break;
                             }
                         }
@@ -601,7 +547,7 @@ app.get('/find/appointment', async (req, res) => {
             }
         }
     }
-    tempArray1.sort((a, b) => {
+    upcomingAppointment.sort((a, b) => {
         firstDate = Date.parse(a[4].substring(4, 15));
         secondDate = Date.parse(b[4].substring(4, 15));
         //console.log(firstDate);
@@ -646,7 +592,7 @@ app.get('/find/appointment', async (req, res) => {
         }
         return -1;
     })
-    tempArray2.sort((a, b) => {
+    pastAppointment.sort((a, b) => {
         firstDate = Date.parse(a[4].substring(4, 15));
         secondDate = Date.parse(b[4].substring(4, 15));
         //console.log(firstDate);
@@ -691,8 +637,8 @@ app.get('/find/appointment', async (req, res) => {
         }
         return -1;
     })
-    returnArray[0] = tempArray1;
-    returnArray[1] = tempArray2;
+    returnArray[0] = upcomingAppointment;
+    returnArray[1] = pastAppointment;
     res.json(returnArray);
 })
 
@@ -708,8 +654,8 @@ app.get('/datelist', async (req, res) => {
     }
 
     let returnArray = [];
-    let updatedString = "";
-    let updatedString1 = "";
+    let comparisonString = "";
+    let savedString = "";
     let maxHours = 0;
     let dayOffStart = 0;
     let dayOffEnd = 0;
@@ -725,54 +671,31 @@ app.get('/datelist', async (req, res) => {
             {
                 week[Number(feed[i].availability[j])][Number(feed[i].availability[j + 1] + feed[i].availability[j + 2])] = true;
             }
-            // const todayDate = new Date();
-            // //console.log(todayDate);
-            // let dateString = todayDate.getFullYear().toString();
-            // if (todayDate.getMonth() < 9)
-            // {
-            //     dateString += "0";
-            // }
-            // dateString += (todayDate.getMonth() + 1).toString();
-            // if (todayDate.getDate() < 10)
-            // {
-            //     dateString += "0";
-            // }
-            // dateString += todayDate.getDate().toString();
-            // //console.log(dateString);
-
-            // for (let j = 1; j < feed[i].booking.length; j+=13)
-            // {
-            //     let bookingString = feed[i].booking.substring(j + 3, j + 11);
-            //     if (bookingString > dateString)
-            //     {
-            //         updatedString += feed[i].booking.substring(j - 1, j + 12);
-            //     }
-            // }
 
             for (let j = 0; j < feed[i].booking.length; j+= 13)
             {
                 let bookingString = feed[i].booking.substring(j, j + 13);
-                if (!dateComparer(bookingString, 0))
+                if (!checkDateRange(bookingString, 0))
                 {
-                    updatedString += bookingString;
+                    comparisonString += bookingString;
                 }
-                if (!dateComparer(bookingString, 5))
+                if (!checkDateRange(bookingString, 5))
                 {
-                    updatedString1 += bookingString;
+                    savedString += bookingString;
                 }
             }
             
-            for (let j = 1; j < updatedString.length; j+=13)
+            for (let j = 1; j < comparisonString.length; j+=13)
             {
                 for (let k = 0; k < 4; k++)
                 {
-                    week[Number(updatedString[j])][Number(updatedString[j + 1] + updatedString[j + 2]) + k] = false;
+                    week[Number(comparisonString[j])][Number(comparisonString[j + 1] + comparisonString[j + 2]) + k] = false;
                 }
             }
 
             const id = feed[i]._id;
             const post = await Post.findByIdAndUpdate(id, {
-                booking: updatedString1,
+                booking: savedString,
             }, { new: true });
         
             post.save();
@@ -899,7 +822,7 @@ app.get('/datelist', async (req, res) => {
     }
     //console.log(week);
 
-    if (updatedString1.length / 13 >= maxHours)
+    if (savedString.length / 13 >= maxHours)
     {
         returnArray = [];
     }
@@ -1036,90 +959,6 @@ app.post('/request/new', async (req, res) => {
 
     post.save();
     res.json(post);
-})
-
-app.put('/feed/edit', async (req, res) => {
-    const feed = await Post.find();
-
-    dateProcessor = dateEncoder(req.body.booking);
-
-    for (let i = 0; i < feed.length; i++)
-    {
-        if (feed[i].member === req.body.memberName)
-        {
-            /*
-            const message = "Dear " + req.body.student + ",\n\nThis is a confirmation of your request for tutoring with " 
-            + req.body.memberName + " on " + req.body.booking + " for " + req.body.subject + ". Please email them" +  
-            " the materials that you would like to go over 24 hours before the scheduled appointment time at " + feed[i].email +
-            ".\n\nAppointment ID: " + 
-            ".\n\nThank you for choosing AXS Tutoring.\n\nSincerely,\nArthur Huang and Claire Luong"
-            + "\n\n[Do not reply to this email. For all inquiries please contact us at tutoring.axsbg@gmail.com]";
-
-            const options = {
-                from: "axstutoring@zohomail.com",
-                to: req.body.email,
-                subject: "AXS Tutoring - Appointment Confirmation",
-                text: message,
-            };
-            
-            transporter.sendMail(options, function (err, info){
-                if (err)
-                {
-                    console.log(err);
-                    return;
-                }
-                //console.log("Sent", info.response);
-            })
-            */
-
-            // const id = feed[i]._id;
-            // const booking = feed[i].booking;
-            // try {
-            //     const post = await Post.findByIdAndUpdate(id, {
-            //         booking: booking + dateProcessor,
-            //   }, { new: true });
-          
-            //   post.save();
-            //   res.json(post);
-              
-            // } catch (err) {
-            //   console.error(err);
-            //   res.status(500).send('Server Error');
-            // }
-            break;
-        }
-    }
-
-    const feed1 = await Email.find();
-
-    let username = user(req.body.email);
-
-    for (let i = 0; i < feed1.length; i++)
-    {
-        if (feed1[i].email === username)
-        {
-            const id = feed1[i]._id;
-            const booking = feed1[i].bookings;
-            if (booking.length === 0 || booking[0] === "-")
-            {
-                const post = await Email.findByIdAndUpdate(id, {
-                    bookings: dateProcessor,
-                }, { new: true });
-              
-                post.save();
-            }
-            else{
-                const post = await Email.findByIdAndUpdate(id, {
-                    bookings: booking + dateProcessor,
-                }, { new: true });
-              
-                post.save();
-            }
-            
-        }
-    }
-    //post.timestamp = Date(date.now());
-    //post.save();
 })
 
 app.delete('/feed/delete/:_id', async (req, res) => {
